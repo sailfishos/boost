@@ -1,22 +1,36 @@
-%ifnarch %{ix86} x86_64
-  # Avoid using Boost.Context on non-x86 arches.  s390 is not
-  # supported at all and there were _syntax errors_ in PPC code.  This
-  # should be enabled on a case-by-case basis as the arches are tested
-  # and fixed.
-  %bcond_with context
+# Support for documentation installation As the %%doc macro erases the
+# target directory ($RPM_BUILD_ROOT%%{_docdir}/%%{name}), manually
+# installed documentation must be saved into a temporary dedicated
+# directory.
+# XXX note that as of rpm 4.9.1, this shouldn't be necessary anymore.
+# We should be able to install directly.
+%global boost_docdir __tmp_docdir
+%global boost_examplesdir __tmp_examplesdir
+
+%ifarch ppc64le
+  %bcond_with mpich
 %else
-  %bcond_without context
+  %bcond_without mpich
+%endif
+
+%bcond_without python3
+
+%ifnarch %{ix86} x86_64
+  %bcond_with quadmath
+%else
+  %bcond_without quadmath
 %endif
 
 Name: boost
 Summary: The free peer-reviewed portable C++ source libraries
-Version: 1.51.0
+Version: 1.60.0
 Release: 1
 License: Boost and MIT and Python
 
 URL: http://www.boost.org
 Group: System/Libraries
-Source0: %{name}-{%version}.tar.bz2
+Source0: %{name}-%{version}.tar.bz2
+Source1: ver.py
 Source2: libboost_thread-mt.so
 
 # Patches from opensuse
@@ -26,15 +40,50 @@ Patch2: boost-strict_aliasing.patch
 Patch3: boost-thread.patch
 Patch4: boost-use_std_xml_catalog.patch
 
+# Patches from fedora
+# https://svn.boost.org/trac/boost/ticket/6150
+Patch7: boost-1.50.0-fix-non-utf8-files.patch
 
-%define sonamever %{version}
+# https://bugzilla.redhat.com/show_bug.cgi?id=828856
+# https://bugzilla.redhat.com/show_bug.cgi?id=828857
+# https://svn.boost.org/trac/boost/ticket/6701
+Patch8: boost-1.58.0-pool.patch
 
+# https://svn.boost.org/trac/boost/ticket/5637
+Patch9: boost-1.57.0-mpl-print.patch
+
+# https://svn.boost.org/trac/boost/ticket/8870
+Patch10: boost-1.57.0-spirit-unused_typedef.patch
+
+# https://svn.boost.org/trac/boost/ticket/9038
+Patch11: boost-1.58.0-pool-test_linking.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1102667
+Patch12: boost-1.57.0-python-abi_letters.patch
+Patch13: boost-1.57.0-python-libpython_dep.patch
+Patch14: boost-1.55.0-python-test-PyImport_AppendInittab.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1190039
+Patch15: boost-1.57.0-build-optflags.patch
+
+# Prevent gcc.jam from setting -m32 or -m64.
+Patch16: boost-1.58.0-address-model.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1262444
+Patch17: boost-1.59-test-fenv.patch
+
+%define sonamever %(echo %{version} | cut -d '+' -f 1)
+
+BuildRequires: m4
 BuildRequires: libstdc++-devel
 BuildRequires: bzip2-libs
 BuildRequires: bzip2-devel
 BuildRequires: zlib-devel
 BuildRequires: python-devel
 BuildRequires: libicu-devel
+%if %{with quadmath}
+BuildRequires: libquadmath-devel
+%endif
 BuildRequires: chrpath
 
 BuildRequires: fdupes
@@ -52,6 +101,17 @@ libraries have already been included in the C++ 2011 standard and
 others have been proposed to the C++ Standards Committee for inclusion
 in future standards.)
 
+%package atomic
+Summary: Run-Time component of boost atomic library
+Group: System Environment/Libraries
+
+%description atomic
+
+Run-Time support for Boost.Atomic, a library that provides atomic data
+types and operations on these data types, as well as memory ordering
+constraints required for coordinating multiple threads through atomic
+variables.
+
 %package chrono
 Summary: Run-Time component of boost chrono library
 Group: System Environment/Libraries
@@ -60,15 +120,16 @@ Group: System Environment/Libraries
 
 Run-Time support for Boost.Chrono, a set of useful time utilities.
 
-%if %{with context}
-%package context
-Summary: Run-Time component of boost context library
+%package container
+Summary: Run-Time component of boost container library
 Group: System Environment/Libraries
 
-%description context
+%description container
 
-Run-Time support for Boost Context
-%endif
+Boost.Container library implements several well-known containers,
+including STL containers. The aim of the library is to offers advanced
+features not present in standard containers or to offer the latest
+standard draft features for compilers that comply with C++03.
 
 %package date-time
 Summary: Run-Time component of boost date-time library
@@ -111,15 +172,32 @@ stream buffers and i/o filters.
 %package locale
 Summary: Run-Time component of boost locale library
 Group: System Environment/Libraries
+Requires: boost-chrono = %{version}-%{release}
+Requires: boost-system = %{version}-%{release}
+Requires: boost-thread = %{version}-%{release}
 
 %description locale
 
 Run-Time support for Boost.Locale, a set of localization and Unicode
 handling tools.
 
+%package log
+Summary: Run-Time component of boost logging library
+Group: System Environment/Libraries
+
+%description log
+
+Boost.Log library aims to make logging significantly easier for the
+application developer.  It provides a wide range of out-of-the-box
+tools along with public interfaces for extending the library.
+
+
 %package math
 Summary: Math functions for boost TR1 library
 Group: System Environment/Libraries
+%if %{with quadmath}
+Requires: libquadmath
+%endif
 
 %description math
 
@@ -213,12 +291,25 @@ data specific to individual threads.
 %package timer
 Summary: Run-Time component of boost timer library
 Group: System Environment/Libraries
+Requires: boost-chrono = %{version}-%{release}
+Requires: boost-system = %{version}-%{release}
 
 %description timer
 
 "How long does my C++ code take to run?"
 The Boost Timer library answers that question and does so portably,
 with as little as one #include and one additional line of code.
+
+%package type_erasure
+Summary: Run-Time component of boost type erasure library
+Group: System Environment/Libraries
+Requires: boost-chrono = %{version}-%{release}
+Requires: boost-system = %{version}-%{release}
+
+%description type_erasure
+
+The Boost.TypeErasure library provides runtime polymorphism in C++
+that is more flexible than that provided by the core language.
 
 %package wave
 Summary: Run-Time component of boost C99/C++ pre-processing library
@@ -233,16 +324,20 @@ pre-processor functionality.
 %package devel
 Summary: The Boost C++ headers and shared development libraries
 Group: Development/Libraries
+Requires: libicu-devel
+Requires: boost-atomic = %{version}-%{release}
 Requires: boost-chrono = %{version}-%{release}
-%if %{with context}
-Requires: boost-context = %{version}-%{release}
-%endif
+Requires: boost-container = %{version}-%{release}
 Requires: boost-date-time = %{version}-%{release}
 Requires: boost-filesystem = %{version}-%{release}
 Requires: boost-graph = %{version}-%{release}
 Requires: boost-iostreams = %{version}-%{release}
 Requires: boost-locale = %{version}-%{release}
+Requires: boost-log = %{version}-%{release}
 Requires: boost-math = %{version}-%{release}
+%if %{with quadmath}
+Requires: libquadmath-devel
+%endif
 Requires: boost-program-options = %{version}-%{release}
 Requires: boost-python = %{version}-%{release}
 Requires: boost-random = %{version}-%{release}
@@ -253,6 +348,7 @@ Requires: boost-system = %{version}-%{release}
 Requires: boost-test = %{version}-%{release}
 Requires: boost-thread = %{version}-%{release}
 Requires: boost-timer = %{version}-%{release}
+Requires: boost-type_erasure = %{version}-%{release}
 Requires: boost-wave = %{version}-%{release}
 Provides: boost-python-devel = %{version}-%{release}
 
@@ -263,6 +359,7 @@ Headers and shared object symbolic links for the Boost C++ libraries.
 Summary: The Boost C++ static development libraries
 Group: Development/Libraries
 Requires: boost-devel = %{version}-%{release}
+Provides: boost-devel-static = %{version}-%{release}
 
 %description static
 Static Boost C++ libraries.
@@ -270,6 +367,8 @@ Static Boost C++ libraries.
 %package doc
 Summary: HTML documentation for the Boost C++ libraries
 Group: Documentation
+BuildArch: noarch
+Provides: boost-python-docs = %{version}-%{release}
 
 %description doc
 This package contains the documentation in the HTML format of the Boost C++
@@ -300,22 +399,34 @@ Historically, Boost.Jam is based on on FTJam and on Perforce Jam but has grown
 a number of significant features and is now developed independently
 
 %prep
-%setup -q -n %{name}-{%version}/upstream
+%setup -q -n %{name}-%{version}/upstream
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
+%patch10 -p1
+%patch11 -p1
+%patch12 -p1
+%patch13 -p1
+%patch14 -p1
+%patch15 -p1
+%patch16 -p1
+%patch17 -p1
 
 # At least python2_version needs to be a macro so that it's visible in
 # %%install as well.
-%global python2_version %(python -c 'import sys; print sys.version[:3]')
+%global python2_version %(python2 -c 'import sys; print sys.version[:3]')
 
 %build
-: PYTHON2_VERSION=$()
+: PYTHON2_VERSION=%{python2_version}
 
-./bootstrap.sh --with-toolset=gcc --with-icu --prefix=$RPM_BUILD_ROOT%{_prefix}
+./bootstrap.sh --with-toolset=gcc --with-icu
+
+./b2 headers
 
 # N.B. When we build the following with PCH, parts of boost (math
 # library in particular) end up being built second time during
@@ -332,14 +443,23 @@ a number of significant features and is now developed independently
 echo ============================= build serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-%if !%{with context}
-	--without-context \
-%endif
+	--without-context --without-coroutine --without-coroutine2 \
 	variant=release threading=single,multi debug-symbols=on pch=off \
 	python=%{python2_version} stage
 
+# See libs/thread/build/Jamfile.v2 for where this file comes from.
+if [ $(find serial -type f -name has_atomic_flag_lockfree \
+		-print -quit | wc -l) -ne 0 ]; then
+	DEF=D
+else
+	DEF=U
+fi
+
+m4 -${DEF}HAS_ATOMIC_FLAG_LOCKFREE -DVERSION=%{version} \
+	%{SOURCE2} > $(basename %{SOURCE2})
+
 echo ============================= build Boost.Build ==================
-(cd tools/build/v2
+(cd tools/build
  ./bootstrap.sh --with-toolset=gcc)
 
 %check
@@ -349,16 +469,11 @@ echo ============================= build Boost.Build ==================
 %install
 rm -rf $RPM_BUILD_ROOT
 
-cd %{_builddir}
-
-./b2 headers
-
 echo ============================= install serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-%if !%{with context}
-	--without-context \
-%endif
+	--without-context --without-coroutine --without-coroutine2\
+	--prefix=$RPM_BUILD_ROOT%{_prefix} \
 	--libdir=$RPM_BUILD_ROOT%{_libdir} \
 	variant=release threading=single,multi debug-symbols=on pch=off \
 	python=%{python2_version} install
@@ -367,7 +482,7 @@ echo ============================= install serial ==================
 # itself for details of why we need to do this.
 [ -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so ] # Must be present
 rm -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{_libdir}/
+install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 
 echo ============================= install Boost.Build ==================
 (cd tools/build/v2
@@ -388,19 +503,23 @@ echo ============================= install Boost.Build ==================
 # Install documentation files (HTML pages) within the temporary place
 echo ============================= install documentation ==================
 # Prepare the place to temporary store the generated documentation
-rm -rf $RPM_BUILD_ROOT%{_docdir} && %{__mkdir_p} $RPM_BUILD_ROOT%{_docdir}/html
-DOCPATH=$RPM_BUILD_ROOT%{_docdir}
-find libs doc more -type f \( -name \*.htm -o -name \*.html \) \
+rm -rf %{boost_docdir} && %{__mkdir_p} %{boost_docdir}/html
+DOCPATH=%{boost_docdir}
+DOCREGEX='.*\.\(html?\|css\|png\|gif\)'
+
+find libs doc more -type f -regex $DOCREGEX \
     | sed -n '/\//{s,/[^/]*$,,;p}' \
     | sort -u > tmp-doc-directories
+
 sed "s:^:$DOCPATH/:" tmp-doc-directories \
-    | xargs --no-run-if-empty %{__install} -d
+    | xargs -P 0 --no-run-if-empty %{__install} -d
+
 cat tmp-doc-directories | while read tobeinstalleddocdir; do
-    find $tobeinstalleddocdir -mindepth 1 -maxdepth 1 -name \*.htm\* \
-    | xargs %{__install} -p -m 644 -t $DOCPATH/$tobeinstalleddocdir
+    find $tobeinstalleddocdir -mindepth 1 -maxdepth 1 -regex $DOCREGEX -print0 \
+    | xargs -P 0 -0 %{__install} -p -m 644 -t $DOCPATH/$tobeinstalleddocdir
 done
 rm -f tmp-doc-directories
-%{__install} -p -m 644 -t $DOCPATH LICENSE_1_0.txt index.htm index.html
+%{__install} -p -m 644 -t $DOCPATH LICENSE_1_0.txt index.htm index.html boost.png rst.css boost.css
 
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
@@ -415,15 +534,17 @@ rm -rf $RPM_BUILD_ROOT
 # user after the relevant environment module has been loaded.
 # rpmlint will report that as errors, but it is fine.
 
+%post atomic -p /sbin/ldconfig
+
+%postun atomic -p /sbin/ldconfig
+
 %post chrono -p /sbin/ldconfig
 
 %postun chrono -p /sbin/ldconfig
 
-%if %{with context}
-%post context -p /sbin/ldconfig
+%post container -p /sbin/ldconfig
 
-%postun context -p /sbin/ldconfig
-%endif
+%postun container -p /sbin/ldconfig
 
 %post date-time -p /sbin/ldconfig
 
@@ -444,6 +565,10 @@ rm -rf $RPM_BUILD_ROOT
 %post locale -p /sbin/ldconfig
 
 %postun locale -p /sbin/ldconfig
+
+%post log -p /sbin/ldconfig
+
+%postun log -p /sbin/ldconfig
 
 %post math -p /sbin/ldconfig
 
@@ -489,24 +614,28 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun timer -p /sbin/ldconfig
 
+%post type_erasure -p /sbin/ldconfig
+
+%postun type_erasure -p /sbin/ldconfig
+
 %post wave -p /sbin/ldconfig
 
 %postun wave -p /sbin/ldconfig
 
-
+%files atomic
+%defattr(-, root, root, -)
+%doc LICENSE_1_0.txt
+%{_libdir}/libboost_atomic*.so.%{sonamever}
 
 %files chrono
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
 %{_libdir}/libboost_chrono*.so.%{sonamever}
 
-%if %{with context}
-%files context
+%files container
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_context.so.%{sonamever}
-%{_libdir}/libboost_context-mt.so.%{sonamever}
-%endif
+%{_libdir}/libboost_container*.so.%{sonamever}
 
 %files date-time
 %defattr(-, root, root, -)
@@ -533,6 +662,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
 %{_libdir}/libboost_locale*.so.%{sonamever}
+
+%files log
+%defattr(-, root, root, -)
+%doc LICENSE_1_0.txt
+%{_libdir}/libboost_log*.so.%{sonamever}
 
 %files math
 %defattr(-, root, root, -)
@@ -592,6 +726,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE_1_0.txt
 %{_libdir}/libboost_timer*.so.%{sonamever}
 
+%files type_erasure
+%defattr(-, root, root, -)
+%doc LICENSE_1_0.txt
+%{_libdir}/libboost_type_erasure*.so.%{sonamever}
+
 %files wave
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
@@ -612,13 +751,4 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE_1_0.txt
 %{_libdir}/*.a
 
-%files build
-%defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
-%{_datadir}/boost-build/
-
-%files jam
-%defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
-%{_bindir}/bjam
 
