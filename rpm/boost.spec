@@ -743,8 +743,9 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_includedir}/%{name}
 %{_libdir}/libboost_*.so
+%defattr(0644, root, root, 0755) 
+%{_includedir}/%{name}
 
 %files static
 %defattr(-, root, root, -)
