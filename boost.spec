@@ -10,7 +10,7 @@
 
 Name: boost
 Summary: The free peer-reviewed portable C++ source libraries
-Version: 1.51.0
+Version: 1.51.0+git1
 Release: 1
 License: Boost and MIT and Python
 
@@ -30,14 +30,14 @@ Patch4: boost-use_std_xml_catalog.patch
 Patch5: 200-cstdint_missing_include.patch
 Patch6: boost-1.51.0-fix-cstdint.patch
 
-%define sonamever %{version}
+%global sonamever %(echo %{version} | cut -d '+' -f 1)
 
 BuildRequires: libstdc++-devel
 BuildRequires: bzip2-libs
 BuildRequires: bzip2-devel
 BuildRequires: zlib-devel
 BuildRequires: python-devel
-BuildRequires: libicu-devel
+BuildRequires: pkgconfig(icu-uc)
 BuildRequires: chrpath
 
 BuildRequires: fdupes
