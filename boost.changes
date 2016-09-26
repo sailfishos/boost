@@ -1,4 +1,7 @@
-* Mon Sep 19 2015 Andrew Branson <andrew.branson@jollamobile.com> - 1.51.0
+* Mon Sep 26 2016 Andrew Branson <andrew.branson@jollamobile.com> - 1.51.0+git1
+- [icu] Loosen build dependency on ICU to allow for version changes. Contributes JB#36384
+
+* Mon Sep 19 2016 Andrew Branson <andrew.branson@jollamobile.com> - 1.51.0
 - Remove old invalid format changelog entries. Contributes JB#36185
 
 * Thu Feb 20 2014 Oleg Girko <oleg.girko@jolla.com> - 1.51.0
