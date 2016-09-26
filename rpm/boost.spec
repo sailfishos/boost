@@ -76,11 +76,10 @@ Patch17: boost-1.59-test-fenv.patch
 
 BuildRequires: m4
 BuildRequires: libstdc++-devel
-BuildRequires: bzip2-libs
 BuildRequires: bzip2-devel
-BuildRequires: zlib-devel
-BuildRequires: python-devel
-BuildRequires: libicu-devel
+BuildRequires: pkgconfig(zlib)
+BuildRequires: pkgconfig(python)
+BuildRequires: pkgconfig(icu-uc)
 %if %{with quadmath}
 BuildRequires: libquadmath-devel
 %endif
@@ -324,7 +323,7 @@ pre-processor functionality.
 %package devel
 Summary: The Boost C++ headers and shared development libraries
 Group: Development/Libraries
-Requires: libicu-devel
+Requires: pkgconfig(icu-uc)
 Requires: boost-atomic = %{version}-%{release}
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-container = %{version}-%{release}
