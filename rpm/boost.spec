@@ -1,12 +1,3 @@
-# Support for documentation installation As the %%doc macro erases the
-# target directory ($RPM_BUILD_ROOT%%{_docdir}/%%{name}), manually
-# installed documentation must be saved into a temporary dedicated
-# directory.
-# XXX note that as of rpm 4.9.1, this shouldn't be necessary anymore.
-# We should be able to install directly.
-%global boost_docdir __tmp_docdir
-%global boost_examplesdir __tmp_examplesdir
-
 %ifarch ppc64le
   %bcond_with mpich
 %else
@@ -498,27 +489,6 @@ echo ============================= install Boost.Build ==================
  # Install the manual page
  %{__install} -p -m 644 doc/bjam.1 -D $RPM_BUILD_ROOT%{_mandir}/man1/bjam.1
 )
-
-# Install documentation files (HTML pages) within the temporary place
-echo ============================= install documentation ==================
-# Prepare the place to temporary store the generated documentation
-rm -rf %{boost_docdir} && %{__mkdir_p} %{boost_docdir}/html
-DOCPATH=%{boost_docdir}
-DOCREGEX='.*\.\(html?\|css\|png\|gif\)'
-
-find libs doc more -type f -regex $DOCREGEX \
-    | sed -n '/\//{s,/[^/]*$,,;p}' \
-    | sort -u > tmp-doc-directories
-
-sed "s:^:$DOCPATH/:" tmp-doc-directories \
-    | xargs -P 0 --no-run-if-empty %{__install} -d
-
-cat tmp-doc-directories | while read tobeinstalleddocdir; do
-    find $tobeinstalleddocdir -mindepth 1 -maxdepth 1 -regex $DOCREGEX -print0 \
-    | xargs -P 0 -0 %{__install} -p -m 644 -t $DOCPATH/$tobeinstalleddocdir
-done
-rm -f tmp-doc-directories
-%{__install} -p -m 644 -t $DOCPATH LICENSE_1_0.txt index.htm index.html boost.png rst.css boost.css
 
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
