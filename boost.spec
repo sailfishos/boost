@@ -388,23 +388,6 @@ echo ============================= install Boost.Build ==================
  %{__install} -p -m 644 doc/bjam.1 -D $RPM_BUILD_ROOT%{_mandir}/man1/bjam.1
 )
 
-# Install documentation files (HTML pages) within the temporary place
-echo ============================= install documentation ==================
-# Prepare the place to temporary store the generated documentation
-rm -rf %{boost_docdir} && %{__mkdir_p} %{boost_docdir}/html
-DOCPATH=%{boost_docdir}
-find libs doc more -type f \( -name \*.htm -o -name \*.html \) \
-    | sed -n '/\//{s,/[^/]*$,,;p}' \
-    | sort -u > tmp-doc-directories
-sed "s:^:$DOCPATH/:" tmp-doc-directories \
-    | xargs --no-run-if-empty %{__install} -d
-cat tmp-doc-directories | while read tobeinstalleddocdir; do
-    find $tobeinstalleddocdir -mindepth 1 -maxdepth 1 -name \*.htm\* \
-    | xargs %{__install} -p -m 644 -t $DOCPATH/$tobeinstalleddocdir
-done
-rm -f tmp-doc-directories
-%{__install} -p -m 644 -t $DOCPATH LICENSE_1_0.txt index.htm index.html
-
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
 %fdupes %{buildroot}/%{_datadir}/
@@ -602,7 +585,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files doc
 %defattr(-, root, root, -)
-%doc %{boost_docdir}/*
+%doc %{_docdir}/*
 
 %files devel
 %defattr(-, root, root, -)
