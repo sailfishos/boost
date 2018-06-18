@@ -10,7 +10,7 @@
 
 Name: boost
 Summary: The free peer-reviewed portable C++ source libraries
-Version: 1.51.0+git1
+Version: 1.51.0+git2
 Release: 1
 License: Boost and MIT and Python
 
