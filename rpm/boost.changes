@@ -10,7 +10,7 @@
 * Tue Jan 29 2013 Marco Martin <mart@kde.org> - 1.51.0
 - Updated libboost_thread-mt.so link information to 1.51.0
 
-* Thu Sep 25 2012 Marko Saukko <marko.saukko@jollamobile.com> - 1.51.0
+* Tue Sep 25 2012 Marko Saukko <marko.saukko@jollamobile.com> - 1.51.0
 - Fixes MER#291: Update to boost 1.51.0
 - Added new subpackages: -chrono, -context, -locale, -random, -timer, 
   -build and -jam
@@ -84,7 +84,7 @@
 - Fix rpmlint warnings on tabs and spaces.
 - Bump SONAME to 4
 
-* Tue Nov 17 2008 Benjamin Kosnik <bkoz@redhat.com> - 1.37.0-0.1
+* Mon Nov 17 2008 Benjamin Kosnik <bkoz@redhat.com> - 1.37.0-0.1
 - Rebase to 1.37.0.
 
 * Tue Oct 21 2008 Benjamin Kosnik <bkoz@redhat.com> - 1.36.0-1

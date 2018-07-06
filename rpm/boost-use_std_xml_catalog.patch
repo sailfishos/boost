@@ -1,8 +1,8 @@
-diff --git a/tools/build/src/tools/boostbook.jam b/tools/build/src/tools/boostbook.jam
-index 13d55fc..c61c856 100644
---- a/tools/build/src/tools/boostbook.jam
-+++ b/tools/build/src/tools/boostbook.jam
-@@ -548,40 +548,7 @@ rule generate-xml-catalog ( target : sources * : properties * )
+Index: boost_1_56_0/tools/build/src/tools/boostbook.jam
+===================================================================
+--- boost_1_56_0.orig/tools/build/src/tools/boostbook.jam
++++ boost_1_56_0/tools/build/src/tools/boostbook.jam
+@@ -545,40 +545,7 @@ rule generate-xml-catalog ( target : sou
          "  <rewriteURI uriStartString=\"http://www.boost.org/tools/boostbook/dtd/\" rewritePrefix=\"file://$(boostbook-dtd-dir)/\"/>"
          : true ;
  
@@ -40,6 +40,7 @@ index 13d55fc..c61c856 100644
 -        print.text "  <rewriteURI uriStartString=\"http://www.oasis-open.org/docbook/xml/4.2/\" rewritePrefix=\"file://$(docbook-dtd-dir)/\"/>" ;
 -    }
 -
-+       print.text " <nextCatalog catalog=\"file:///etc/xml/catalog\"/> " ;
++    print.text " <nextCatalog catalog=\"file:///etc/xml/catalog\"/> " ;
      print.text "</catalog>" ;
  }
+ 

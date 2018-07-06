@@ -1,12 +1,3 @@
-# Support for documentation installation As the %%doc macro erases the
-# target directory ($RPM_BUILD_ROOT%%{_docdir}/%%{name}), manually
-# installed documentation must be saved into a temporary dedicated
-# directory.
-# XXX note that as of rpm 4.9.1, this shouldn't be necessary anymore.
-# We should be able to install directly.
-%global boost_docdir __tmp_docdir
-%global boost_examplesdir __tmp_examplesdir
-
 %ifarch ppc64le
   %bcond_with mpich
 %else
@@ -23,7 +14,8 @@
 
 Name: boost
 Summary: The free peer-reviewed portable C++ source libraries
-Version: 1.60.0
+# Update libboost_thread-mt.so on each version change
+Version: 1.66.0
 Release: 1
 License: Boost and MIT and Python
 
@@ -39,48 +31,62 @@ Patch1: boost-no_type_punning.patch
 Patch2: boost-strict_aliasing.patch
 Patch3: boost-thread.patch
 Patch4: boost-use_std_xml_catalog.patch
+Patch5: boost-aarch64-flags.patch
+Patch6: boost-disable-pch-on-aarch64.patch
+Patch7: boost-visibility.patch
+Patch8: dynamic_linking.patch
+Patch9: python_library_name.patch
+# We don't use numpy
+#Patch10: python_numpy_retfunc.patch
+
+# boost-rpmoptflags-only.patch, boost-pool_check_overflow.patch - included in Fedora patches
 
 # Patches from fedora
 # https://svn.boost.org/trac/boost/ticket/6150
-Patch7: boost-1.50.0-fix-non-utf8-files.patch
+Patch11: boost-1.50.0-fix-non-utf8-files.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=828856
 # https://bugzilla.redhat.com/show_bug.cgi?id=828857
 # https://svn.boost.org/trac/boost/ticket/6701
-Patch8: boost-1.58.0-pool.patch
+Patch12: boost-1.58.0-pool.patch
 
 # https://svn.boost.org/trac/boost/ticket/5637
-Patch9: boost-1.57.0-mpl-print.patch
-
-# https://svn.boost.org/trac/boost/ticket/8870
-Patch10: boost-1.57.0-spirit-unused_typedef.patch
+Patch13: boost-1.57.0-mpl-print.patch
 
 # https://svn.boost.org/trac/boost/ticket/9038
-Patch11: boost-1.58.0-pool-test_linking.patch
+Patch14: boost-1.58.0-pool-test_linking.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1102667
-Patch12: boost-1.57.0-python-abi_letters.patch
-Patch13: boost-1.57.0-python-libpython_dep.patch
-Patch14: boost-1.55.0-python-test-PyImport_AppendInittab.patch
+Patch15: boost-1.57.0-python-libpython_dep.patch
+Patch16: boost-1.66.0-python-abi_letters.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1190039
-Patch15: boost-1.57.0-build-optflags.patch
+Patch17: boost-1.66.0-build-optflags.patch
 
 # Prevent gcc.jam from setting -m32 or -m64.
-Patch16: boost-1.58.0-address-model.patch
+Patch18: boost-1.66.0-address-model.patch
 
-# https://bugzilla.redhat.com/show_bug.cgi?id=1262444
-Patch17: boost-1.59-test-fenv.patch
+# https://bugzilla.redhat.com/show_bug.cgi?id=1318383
+Patch19: boost-1.66.0-no-rpath.patch
 
-%define sonamever %(echo %{version} | cut -d '+' -f 1)
+# https://bugzilla.redhat.com/show_bug.cgi?id=1541035
+Patch20: boost-1.66.0-bjam-build-flags.patch
+
+#These two are gcc8 fixes, so disabled for now
+# https://bugzilla.redhat.com/show_bug.cgi?id=1545092
+#Patch21: boost-1.66.0-spirit-abs-overflow.patch
+# https://bugzilla.redhat.com/show_bug.cgi?id=1585515
+#Patch22: boost-1.66.0-compute.patch
+
+# https://github.com/boostorg/python/pull/186
+Patch23: boost-1.66.0-python37.patch
 
 BuildRequires: m4
 BuildRequires: libstdc++-devel
-BuildRequires: bzip2-libs
 BuildRequires: bzip2-devel
-BuildRequires: zlib-devel
-BuildRequires: python-devel
-BuildRequires: libicu-devel
+BuildRequires: pkgconfig(zlib)
+BuildRequires: pkgconfig(python)
+BuildRequires: pkgconfig(icu-uc)
 %if %{with quadmath}
 BuildRequires: libquadmath-devel
 %endif
@@ -139,6 +145,16 @@ Group: System Environment/Libraries
 
 Run-Time support for Boost Date Time, set of date-time libraries based
 on generic programming concepts.
+
+%package exception
+Summary: Run-Time component of boost exception library
+Group: System Environment/Libraries
+
+%description exception
+
+Run-Time support for Boost Exception, set of libraries to ease the design 
+of exception class hierarchies and to help write exception handling and 
+error reporting code.
 
 %package filesystem
 Summary: Run-Time component of boost filesystem library
@@ -258,6 +274,13 @@ Group: System Environment/Libraries
 
 Run-Time support for managed signals & slots callback implementation.
 
+%package stacktrace
+Summary: Run-time component of boost stacktrace library
+
+%description stacktrace
+
+Run-time component of the Boost stacktrace library.
+
 %package system
 Summary: Run-Time component of boost system support library
 Group: System Environment/Libraries
@@ -324,11 +347,12 @@ pre-processor functionality.
 %package devel
 Summary: The Boost C++ headers and shared development libraries
 Group: Development/Libraries
-Requires: libicu-devel
+Requires: pkgconfig(icu-uc)
 Requires: boost-atomic = %{version}-%{release}
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-container = %{version}-%{release}
 Requires: boost-date-time = %{version}-%{release}
+Requires: boost-exception = %{version}-%{release}
 Requires: boost-filesystem = %{version}-%{release}
 Requires: boost-graph = %{version}-%{release}
 Requires: boost-iostreams = %{version}-%{release}
@@ -344,6 +368,7 @@ Requires: boost-random = %{version}-%{release}
 Requires: boost-regex = %{version}-%{release}
 Requires: boost-serialization = %{version}-%{release}
 Requires: boost-signals = %{version}-%{release}
+Requires: boost-stacktrace = %{version}-%{release}
 Requires: boost-system = %{version}-%{release}
 Requires: boost-test = %{version}-%{release}
 Requires: boost-thread = %{version}-%{release}
@@ -400,15 +425,18 @@ a number of significant features and is now developed independently
 
 %prep
 %setup -q -n %{name}-%{version}/upstream
+
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
+%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch10 -p1
+#%patch10 -p1
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
@@ -416,6 +444,12 @@ a number of significant features and is now developed independently
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
+%patch19 -p1
+%patch20 -p1
+#%patch21 -p1
+#%patch22 -p1
+%patch23 -p1
 
 # At least python2_version needs to be a macro so that it's visible in
 # %%install as well.
@@ -443,7 +477,7 @@ a number of significant features and is now developed independently
 echo ============================= build serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-	--without-context --without-coroutine --without-coroutine2 \
+	--without-context --without-coroutine --without-fiber \
 	variant=release threading=single,multi debug-symbols=on pch=off \
 	python=%{python2_version} stage
 
@@ -472,7 +506,7 @@ rm -rf $RPM_BUILD_ROOT
 echo ============================= install serial ==================
 ./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
 	--without-mpi --without-graph_parallel --build-dir=serial \
-	--without-context --without-coroutine --without-coroutine2\
+	--without-context --without-coroutine --without-fiber \
 	--prefix=$RPM_BUILD_ROOT%{_prefix} \
 	--libdir=$RPM_BUILD_ROOT%{_libdir} \
 	variant=release threading=single,multi debug-symbols=on pch=off \
@@ -499,27 +533,6 @@ echo ============================= install Boost.Build ==================
  # Install the manual page
  %{__install} -p -m 644 doc/bjam.1 -D $RPM_BUILD_ROOT%{_mandir}/man1/bjam.1
 )
-
-# Install documentation files (HTML pages) within the temporary place
-echo ============================= install documentation ==================
-# Prepare the place to temporary store the generated documentation
-rm -rf %{boost_docdir} && %{__mkdir_p} %{boost_docdir}/html
-DOCPATH=%{boost_docdir}
-DOCREGEX='.*\.\(html?\|css\|png\|gif\)'
-
-find libs doc more -type f -regex $DOCREGEX \
-    | sed -n '/\//{s,/[^/]*$,,;p}' \
-    | sort -u > tmp-doc-directories
-
-sed "s:^:$DOCPATH/:" tmp-doc-directories \
-    | xargs -P 0 --no-run-if-empty %{__install} -d
-
-cat tmp-doc-directories | while read tobeinstalleddocdir; do
-    find $tobeinstalleddocdir -mindepth 1 -maxdepth 1 -regex $DOCREGEX -print0 \
-    | xargs -P 0 -0 %{__install} -p -m 644 -t $DOCPATH/$tobeinstalleddocdir
-done
-rm -f tmp-doc-directories
-%{__install} -p -m 644 -t $DOCPATH LICENSE_1_0.txt index.htm index.html boost.png rst.css boost.css
 
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
@@ -549,6 +562,10 @@ rm -rf $RPM_BUILD_ROOT
 %post date-time -p /sbin/ldconfig
 
 %postun date-time -p /sbin/ldconfig
+
+%post exception -p /sbin/ldconfig
+
+%postun exception -p /sbin/ldconfig
 
 %post filesystem -p /sbin/ldconfig
 
@@ -598,6 +615,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun signals -p /sbin/ldconfig
 
+%post stacktrace -p /sbin/ldconfig
+
+%postun stacktrace -p /sbin/ldconfig
+
 %post system -p /sbin/ldconfig
 
 %postun system -p /sbin/ldconfig
@@ -625,116 +646,129 @@ rm -rf $RPM_BUILD_ROOT
 %files atomic
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_atomic*.so.%{sonamever}
+%{_libdir}/libboost_atomic*.so.*
 
 %files chrono
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_chrono*.so.%{sonamever}
+%{_libdir}/libboost_chrono*.so.*
 
 %files container
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_container*.so.%{sonamever}
+%{_libdir}/libboost_container*.so.*
 
 %files date-time
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_date_time*.so.%{sonamever}
+%{_libdir}/libboost_date_time*.so.*
+
+%files exception
+%defattr(-, root, root, -)
+%doc LICENSE_1_0.txt
+%{_libdir}/libboost_exception*.so.*
 
 %files filesystem
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_filesystem*.so.%{sonamever}
+%{_libdir}/libboost_filesystem*.so.*
 
 %files graph
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_graph.so.%{sonamever}
-%{_libdir}/libboost_graph-mt.so.%{sonamever}
+%{_libdir}/libboost_graph.so.*
+%{_libdir}/libboost_graph-mt.so.*
 
 %files iostreams
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_iostreams*.so.%{sonamever}
+%{_libdir}/libboost_iostreams*.so.*
 
 %files locale
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_locale*.so.%{sonamever}
+%{_libdir}/libboost_locale*.so.*
 
 %files log
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_log*.so.%{sonamever}
+%{_libdir}/libboost_log*.so.*
 
 %files math
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_math*.so.%{sonamever}
+%{_libdir}/libboost_math*.so.*
 
 %files test
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_prg_exec_monitor*.so.%{sonamever}
-%{_libdir}/libboost_unit_test_framework*.so.%{sonamever}
+%{_libdir}/libboost_prg_exec_monitor*.so.*
+%{_libdir}/libboost_test_exec_monitor*.so.*
+%{_libdir}/libboost_unit_test_framework*.so.*
 
 %files program-options
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_program_options*.so.%{sonamever}
+%{_libdir}/libboost_program_options*.so.*
 
 %files python
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_python.so.%{sonamever}
-%{_libdir}/libboost_python-mt.so.%{sonamever}
+%{_libdir}/libboost_python.so.*
+%{_libdir}/libboost_python-mt.so.*
 
 %files random
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_random*.so.%{sonamever}
+%{_libdir}/libboost_random*.so.*
 
 %files regex
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_regex*.so.%{sonamever}
+%{_libdir}/libboost_regex*.so.*
 
 %files serialization
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_serialization*.so.%{sonamever}
-%{_libdir}/libboost_wserialization*.so.%{sonamever}
+%{_libdir}/libboost_serialization*.so.*
+%{_libdir}/libboost_wserialization*.so.*
 
 %files signals
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_signals*.so.%{sonamever}
+%{_libdir}/libboost_signals*.so.*
+
+%files stacktrace
+%defattr(-, root, root, -)
+%doc LICENSE_1_0.txt
+%{_libdir}/libboost_stacktrace_addr2line*.so.*
+%{_libdir}/libboost_stacktrace_basic*.so.*
+%{_libdir}/libboost_stacktrace_noop*.so.*
 
 %files system
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_system*.so.%{sonamever}
+%{_libdir}/libboost_system*.so.*
 
 %files thread
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_thread*.so.%{sonamever}
+%{_libdir}/libboost_thread*.so.*
 
 %files timer
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_timer*.so.%{sonamever}
+%{_libdir}/libboost_timer*.so.*
 
 %files type_erasure
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_type_erasure*.so.%{sonamever}
+%{_libdir}/libboost_type_erasure*.so.*
 
 %files wave
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_libdir}/libboost_wave*.so.%{sonamever}
+%{_libdir}/libboost_wave*.so.*
 
 %files doc
 %defattr(-, root, root, -)
@@ -743,8 +777,9 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(-, root, root, -)
 %doc LICENSE_1_0.txt
-%{_includedir}/%{name}
 %{_libdir}/libboost_*.so
+%defattr(0644, root, root, 0755) 
+%{_includedir}/%{name}
 
 %files static
 %defattr(-, root, root, -)
