@@ -81,7 +81,10 @@ BuildRequires: chrpath
 
 BuildRequires: fdupes
 
+# python subpackage was removed in the great python2 purge
 Obsoletes: %{name}-python <= 1.66.0
+# removed because it contained only license files
+Obsoletes: %{name}-doc <= 1.66.0
 
 %bcond_with tests
 %bcond_with docs_generated
@@ -364,16 +367,6 @@ Provides: boost-devel-static = %{version}-%{release}
 %description static
 Static Boost C++ libraries.
 
-%package doc
-Summary: HTML documentation for the Boost C++ libraries
-Group: Documentation
-BuildArch: noarch
-
-%description doc
-This package contains the documentation in the HTML format of the Boost C++
-libraries. The documentation provides the same content as that on the Boost
-web page (http://www.boost.org/doc/libs/1_40_0).
-
 %package build
 Summary: Cross platform build system for C++ projects
 Group: Development/Tools
@@ -466,8 +459,6 @@ echo ============================= install Boost.Build ==================
  rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/build/project.ann.py
  # Empty file
  rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/tools/doxygen/windows-paths-check.hpp
- # Install the manual page
- %{__install} -p -m 644 doc/bjam.1 -D $RPM_BUILD_ROOT%{_mandir}/man1/bjam.1
 )
 
 %fdupes %{buildroot}/
@@ -577,139 +568,133 @@ rm -rf $RPM_BUILD_ROOT
 
 %files atomic
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_atomic*.so.*
 
 %files chrono
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_chrono*.so.*
 
 %files container
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_container*.so.*
 
 %files date-time
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_date_time*.so.*
 
 %files exception
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_exception*.so.*
 
 %files filesystem
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_filesystem*.so.*
 
 %files graph
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_graph.so.*
 %{_libdir}/libboost_graph-mt.so.*
 
 %files iostreams
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_iostreams*.so.*
 
 %files locale
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_locale*.so.*
 
 %files log
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_log*.so.*
 
 %files math
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_math*.so.*
 
 %files test
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_prg_exec_monitor*.so.*
 %{_libdir}/libboost_test_exec_monitor*.so.*
 %{_libdir}/libboost_unit_test_framework*.so.*
 
 %files program-options
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_program_options*.so.*
 
 %files random
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_random*.so.*
 
 %files regex
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_regex*.so.*
 
 %files serialization
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_serialization*.so.*
 %{_libdir}/libboost_wserialization*.so.*
 
 %files signals
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_signals*.so.*
 
 %files stacktrace
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_stacktrace_addr2line*.so.*
 %{_libdir}/libboost_stacktrace_basic*.so.*
 %{_libdir}/libboost_stacktrace_noop*.so.*
 
 %files system
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_system*.so.*
 
 %files thread
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_thread*.so.*
 
 %files timer
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_timer*.so.*
 
 %files type_erasure
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_type_erasure*.so.*
 
 %files wave
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_wave*.so.*
-
-%files doc
-%defattr(-, root, root, -)
-%doc %{_docdir}/*
 
 %files devel
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_*.so
 %defattr(0644, root, root, 0755) 
 %{_includedir}/%{name}
 
 %files static
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/*.a
-
-
