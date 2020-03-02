@@ -4,8 +4,6 @@
   %bcond_without mpich
 %endif
 
-%bcond_without python3
-
 %ifnarch %{ix86} x86_64
   %bcond_with quadmath
 %else
@@ -35,9 +33,6 @@ Patch5: boost-aarch64-flags.patch
 Patch6: boost-disable-pch-on-aarch64.patch
 Patch7: boost-visibility.patch
 Patch8: dynamic_linking.patch
-Patch9: python_library_name.patch
-# We don't use numpy
-#Patch10: python_numpy_retfunc.patch
 
 # boost-rpmoptflags-only.patch, boost-pool_check_overflow.patch - included in Fedora patches
 
@@ -55,10 +50,6 @@ Patch13: boost-1.57.0-mpl-print.patch
 
 # https://svn.boost.org/trac/boost/ticket/9038
 Patch14: boost-1.58.0-pool-test_linking.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1102667
-Patch15: boost-1.57.0-python-libpython_dep.patch
-Patch16: boost-1.66.0-python-abi_letters.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1190039
 Patch17: boost-1.66.0-build-optflags.patch
@@ -78,14 +69,10 @@ Patch20: boost-1.66.0-bjam-build-flags.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1585515
 #Patch22: boost-1.66.0-compute.patch
 
-# https://github.com/boostorg/python/pull/186
-Patch23: boost-1.66.0-python37.patch
-
 BuildRequires: m4
 BuildRequires: libstdc++-devel
 BuildRequires: bzip2-devel
 BuildRequires: pkgconfig(zlib)
-BuildRequires: pkgconfig(python)
 BuildRequires: pkgconfig(icu-uc)
 %if %{with quadmath}
 BuildRequires: libquadmath-devel
@@ -93,6 +80,11 @@ BuildRequires: libquadmath-devel
 BuildRequires: chrpath
 
 BuildRequires: fdupes
+
+# python subpackage was removed in the great python2 purge
+Obsoletes: %{name}-python <= 1.66.0
+# removed because it contained only license files
+Obsoletes: %{name}-doc <= 1.66.0
 
 %bcond_with tests
 %bcond_with docs_generated
@@ -230,18 +222,6 @@ Run-Time support of boost program options library, which allows program
 developers to obtain (name, value) pairs from the user, via
 conventional methods such as command line and configuration file.
 
-%package python
-Summary: Run-Time component of boost python library
-Group: System Environment/Libraries
-
-%description python
-
-The Boost Python Library is a framework for interfacing Python and
-C++. It allows you to quickly and seamlessly expose C++ classes
-functions and objects to Python, and vice versa, using no special
-tools -- just your C++ compiler.  This package contains run-time
-support for Boost Python Library.
-
 %package random
 Summary: Run-Time component of boost random library
 Group: System Environment/Libraries
@@ -363,7 +343,6 @@ Requires: boost-math = %{version}-%{release}
 Requires: libquadmath-devel
 %endif
 Requires: boost-program-options = %{version}-%{release}
-Requires: boost-python = %{version}-%{release}
 Requires: boost-random = %{version}-%{release}
 Requires: boost-regex = %{version}-%{release}
 Requires: boost-serialization = %{version}-%{release}
@@ -375,7 +354,6 @@ Requires: boost-thread = %{version}-%{release}
 Requires: boost-timer = %{version}-%{release}
 Requires: boost-type_erasure = %{version}-%{release}
 Requires: boost-wave = %{version}-%{release}
-Provides: boost-python-devel = %{version}-%{release}
 
 %description devel
 Headers and shared object symbolic links for the Boost C++ libraries.
@@ -388,17 +366,6 @@ Provides: boost-devel-static = %{version}-%{release}
 
 %description static
 Static Boost C++ libraries.
-
-%package doc
-Summary: HTML documentation for the Boost C++ libraries
-Group: Documentation
-BuildArch: noarch
-Provides: boost-python-docs = %{version}-%{release}
-
-%description doc
-This package contains the documentation in the HTML format of the Boost C++
-libraries. The documentation provides the same content as that on the Boost
-web page (http://www.boost.org/doc/libs/1_40_0).
 
 %package build
 Summary: Cross platform build system for C++ projects
@@ -424,41 +391,10 @@ Historically, Boost.Jam is based on on FTJam and on Perforce Jam but has grown
 a number of significant features and is now developed independently
 
 %prep
-%setup -q -n %{name}-%{version}/upstream
-
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-#%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-#%patch21 -p1
-#%patch22 -p1
-%patch23 -p1
-
-# At least python2_version needs to be a macro so that it's visible in
-# %%install as well.
-%global python2_version %(python2 -c 'import sys; print sys.version[:3]')
+%autosetup -p1 -n %{name}-%{version}/upstream
 
 %build
-: PYTHON2_VERSION=%{python2_version}
-
-./bootstrap.sh --with-toolset=gcc --with-icu
+./bootstrap.sh --with-toolset=gcc --with-icu --without-libraries=python
 
 ./b2 headers
 
@@ -466,20 +402,13 @@ a number of significant features and is now developed independently
 # library in particular) end up being built second time during
 # installation.  Unsure why that is, but all sub-builds need to be
 # built with pch=off to avoid this.
-#
-# The "python=2.*" bit tells jam that we want to _also_ build 2.*, not
-# just 3.*.  When omitted, it just builds for python 3 twice, once
-# calling the library libboost_python and once libboost_python3.  I
-# assume this is for backward compatibility for apps that are used to
-# linking against -lboost_python, for when 2->3 transition is
-# eventually done.
 
 echo ============================= build serial ==================
-./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
+./b2 -d+2 -q %{?_smp_mflags} --layout=tagged --without-python \
 	--without-mpi --without-graph_parallel --build-dir=serial \
 	--without-context --without-coroutine --without-fiber \
 	variant=release threading=single,multi debug-symbols=on pch=off \
-	python=%{python2_version} stage
+	stage
 
 # See libs/thread/build/Jamfile.v2 for where this file comes from.
 if [ $(find serial -type f -name has_atomic_flag_lockfree \
@@ -504,13 +433,13 @@ echo ============================= build Boost.Build ==================
 rm -rf $RPM_BUILD_ROOT
 
 echo ============================= install serial ==================
-./b2 -d+2 -q %{?_smp_mflags} --layout=tagged \
+./b2 -d+2 -q %{?_smp_mflags} --layout=tagged --without-python \
 	--without-mpi --without-graph_parallel --build-dir=serial \
 	--without-context --without-coroutine --without-fiber \
 	--prefix=$RPM_BUILD_ROOT%{_prefix} \
 	--libdir=$RPM_BUILD_ROOT%{_libdir} \
 	variant=release threading=single,multi debug-symbols=on pch=off \
-	python=%{python2_version} install
+	install
 
 # Override DSO symlink with a linker script.  See the linker script
 # itself for details of why we need to do this.
@@ -530,8 +459,6 @@ echo ============================= install Boost.Build ==================
  rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/build/project.ann.py
  # Empty file
  rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/tools/doxygen/windows-paths-check.hpp
- # Install the manual page
- %{__install} -p -m 644 doc/bjam.1 -D $RPM_BUILD_ROOT%{_mandir}/man1/bjam.1
 )
 
 %fdupes %{buildroot}/
@@ -595,10 +522,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun program-options -p /sbin/ldconfig
 
-%post python -p /sbin/ldconfig
-
-%postun python -p /sbin/ldconfig
-
 %post random -p /sbin/ldconfig
 
 %postun random -p /sbin/ldconfig
@@ -645,145 +568,133 @@ rm -rf $RPM_BUILD_ROOT
 
 %files atomic
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_atomic*.so.*
 
 %files chrono
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_chrono*.so.*
 
 %files container
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_container*.so.*
 
 %files date-time
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_date_time*.so.*
 
 %files exception
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_exception*.so.*
 
 %files filesystem
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_filesystem*.so.*
 
 %files graph
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_graph.so.*
 %{_libdir}/libboost_graph-mt.so.*
 
 %files iostreams
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_iostreams*.so.*
 
 %files locale
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_locale*.so.*
 
 %files log
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_log*.so.*
 
 %files math
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_math*.so.*
 
 %files test
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_prg_exec_monitor*.so.*
 %{_libdir}/libboost_test_exec_monitor*.so.*
 %{_libdir}/libboost_unit_test_framework*.so.*
 
 %files program-options
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_program_options*.so.*
-
-%files python
-%defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
-%{_libdir}/libboost_python.so.*
-%{_libdir}/libboost_python-mt.so.*
 
 %files random
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_random*.so.*
 
 %files regex
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_regex*.so.*
 
 %files serialization
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_serialization*.so.*
 %{_libdir}/libboost_wserialization*.so.*
 
 %files signals
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_signals*.so.*
 
 %files stacktrace
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_stacktrace_addr2line*.so.*
 %{_libdir}/libboost_stacktrace_basic*.so.*
 %{_libdir}/libboost_stacktrace_noop*.so.*
 
 %files system
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_system*.so.*
 
 %files thread
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_thread*.so.*
 
 %files timer
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_timer*.so.*
 
 %files type_erasure
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_type_erasure*.so.*
 
 %files wave
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_wave*.so.*
-
-%files doc
-%defattr(-, root, root, -)
-%doc %{_docdir}/*
 
 %files devel
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/libboost_*.so
 %defattr(0644, root, root, 0755) 
 %{_includedir}/%{name}
 
 %files static
 %defattr(-, root, root, -)
-%doc LICENSE_1_0.txt
+%license LICENSE_1_0.txt
 %{_libdir}/*.a
-
-
