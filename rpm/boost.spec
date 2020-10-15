@@ -367,20 +367,6 @@ Provides: boost-devel-static = %{version}-%{release}
 %description static
 Static Boost C++ libraries.
 
-%package build
-Summary: Cross platform build system for C++ projects
-Group: Development/Tools
-Requires: boost-jam
-BuildArch: noarch
-
-%description build
-Boost.Build is an easy way to build C++ projects, everywhere. You name
-your pieces of executable and libraries and list their sources.  Boost.Build
-takes care about compiling your sources with the right options,
-creating static and shared libraries, making pieces of executable, and other
-chores -- whether you're using GCC, MSVC, or a dozen more supported
-C++ compilers -- on Windows, OSX, Linux and commercial UNIX systems.
-
 %package jam
 Summary: A low-level build tool
 Group: Development/Tools
@@ -446,20 +432,6 @@ echo ============================= install serial ==================
 [ -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so ] # Must be present
 rm -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so
 install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
-
-echo ============================= install Boost.Build ==================
-(cd tools/build/v2
- ./b2 --prefix=$RPM_BUILD_ROOT%{_prefix} install
- # Fix some permissions
- chmod -x $RPM_BUILD_ROOT%{_datadir}/boost-build/build/alias.py
- chmod +x $RPM_BUILD_ROOT%{_datadir}/boost-build/tools/doxproc.py
- # We don't want to distribute this
- rm -f $RPM_BUILD_ROOT%{_bindir}/b2
- # Not a real file
- rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/build/project.ann.py
- # Empty file
- rm -f $RPM_BUILD_ROOT%{_datadir}/boost-build/tools/doxygen/windows-paths-check.hpp
-)
 
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
