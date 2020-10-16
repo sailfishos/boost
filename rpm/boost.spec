@@ -18,7 +18,6 @@ Release: 1
 License: Boost and MIT and Python
 
 URL: http://www.boost.org
-Group: System/Libraries
 Source0: %{name}-%{version}.tar.bz2
 Source1: ver.py
 Source2: libboost_thread-mt.so
@@ -101,7 +100,6 @@ in future standards.)
 
 %package atomic
 Summary: Run-Time component of boost atomic library
-Group: System Environment/Libraries
 
 %description atomic
 
@@ -112,7 +110,6 @@ variables.
 
 %package chrono
 Summary: Run-Time component of boost chrono library
-Group: System Environment/Libraries
 
 %description chrono
 
@@ -120,7 +117,6 @@ Run-Time support for Boost.Chrono, a set of useful time utilities.
 
 %package container
 Summary: Run-Time component of boost container library
-Group: System Environment/Libraries
 
 %description container
 
@@ -131,7 +127,6 @@ standard draft features for compilers that comply with C++03.
 
 %package date-time
 Summary: Run-Time component of boost date-time library
-Group: System Environment/Libraries
 
 %description date-time
 
@@ -140,7 +135,6 @@ on generic programming concepts.
 
 %package exception
 Summary: Run-Time component of boost exception library
-Group: System Environment/Libraries
 
 %description exception
 
@@ -150,7 +144,6 @@ error reporting code.
 
 %package filesystem
 Summary: Run-Time component of boost filesystem library
-Group: System Environment/Libraries
 
 %description filesystem
 
@@ -160,7 +153,6 @@ directories.
 
 %package graph
 Summary: Run-Time component of boost graph library
-Group: System Environment/Libraries
 
 %description graph
 
@@ -170,7 +162,6 @@ Library (STL).
 
 %package iostreams
 Summary: Run-Time component of boost iostreams library
-Group: System Environment/Libraries
 
 %description iostreams
 
@@ -179,7 +170,6 @@ stream buffers and i/o filters.
 
 %package locale
 Summary: Run-Time component of boost locale library
-Group: System Environment/Libraries
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-system = %{version}-%{release}
 Requires: boost-thread = %{version}-%{release}
@@ -191,7 +181,6 @@ handling tools.
 
 %package log
 Summary: Run-Time component of boost logging library
-Group: System Environment/Libraries
 
 %description log
 
@@ -202,7 +191,6 @@ tools along with public interfaces for extending the library.
 
 %package math
 Summary: Math functions for boost TR1 library
-Group: System Environment/Libraries
 %if %{with quadmath}
 Requires: libquadmath
 %endif
@@ -214,7 +202,6 @@ portion of Boost.TR1.
 
 %package program-options
 Summary:  Run-Time component of boost program_options library
-Group: System Environment/Libraries
 
 %description program-options
 
@@ -224,7 +211,6 @@ conventional methods such as command line and configuration file.
 
 %package random
 Summary: Run-Time component of boost random library
-Group: System Environment/Libraries
 
 %description random
 
@@ -232,7 +218,6 @@ Run-Time support for boost random library.
 
 %package regex
 Summary: Run-Time component of boost regular expression library
-Group: System Environment/Libraries
 
 %description regex
 
@@ -240,7 +225,6 @@ Run-Time support for boost regular expression library.
 
 %package serialization
 Summary: Run-Time component of boost serialization library
-Group: System Environment/Libraries
 
 %description serialization
 
@@ -248,7 +232,6 @@ Run-Time support for serialization for persistence and marshaling.
 
 %package signals
 Summary: Run-Time component of boost signals and slots library
-Group: System Environment/Libraries
 
 %description signals
 
@@ -263,7 +246,6 @@ Run-time component of the Boost stacktrace library.
 
 %package system
 Summary: Run-Time component of boost system support library
-Group: System Environment/Libraries
 
 %description system
 
@@ -273,7 +255,6 @@ library.
 
 %package test
 Summary: Run-Time component of boost test library
-Group: System Environment/Libraries
 
 %description test
 
@@ -282,7 +263,6 @@ program execution monitoring.
 
 %package thread
 Summary: Run-Time component of boost thread library
-Group: System Environment/Libraries
 
 %description thread
 
@@ -293,7 +273,6 @@ data specific to individual threads.
 
 %package timer
 Summary: Run-Time component of boost timer library
-Group: System Environment/Libraries
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-system = %{version}-%{release}
 
@@ -305,7 +284,6 @@ with as little as one #include and one additional line of code.
 
 %package type_erasure
 Summary: Run-Time component of boost type erasure library
-Group: System Environment/Libraries
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-system = %{version}-%{release}
 
@@ -316,7 +294,6 @@ that is more flexible than that provided by the core language.
 
 %package wave
 Summary: Run-Time component of boost C99/C++ pre-processing library
-Group: System Environment/Libraries
 
 %description wave
 
@@ -326,7 +303,6 @@ pre-processor functionality.
 
 %package devel
 Summary: The Boost C++ headers and shared development libraries
-Group: Development/Libraries
 Requires: pkgconfig(icu-uc)
 Requires: boost-atomic = %{version}-%{release}
 Requires: boost-chrono = %{version}-%{release}
@@ -360,7 +336,6 @@ Headers and shared object symbolic links for the Boost C++ libraries.
 
 %package static
 Summary: The Boost C++ static development libraries
-Group: Development/Libraries
 Requires: boost-devel = %{version}-%{release}
 Provides: boost-devel-static = %{version}-%{release}
 
@@ -369,7 +344,6 @@ Static Boost C++ libraries.
 
 %package jam
 Summary: A low-level build tool
-Group: Development/Tools
 
 %description jam
 Boost.Jam (BJam) is the low-level build engine tool for Boost.Build.
@@ -411,9 +385,6 @@ echo ============================= build Boost.Build ==================
 (cd tools/build
  ./bootstrap.sh --with-toolset=gcc)
 
-%check
-:
-
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -436,9 +407,6 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
 %fdupes %{buildroot}/%{_datadir}/
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 
 # MPI subpackages don't need the ldconfig magic.  They are hidden by
