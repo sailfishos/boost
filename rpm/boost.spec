@@ -1,8 +1,5 @@
-%ifarch ppc64le
-  %bcond_with mpich
-%else
-  %bcond_without mpich
-%endif
+# All arches have mpich
+%bcond_without mpich
 
 %ifnarch %{ix86} x86_64
   %bcond_with quadmath
@@ -12,61 +9,49 @@
 
 Name: boost
 Summary: The free peer-reviewed portable C++ source libraries
-# Update libboost_thread-mt.so on each version change
-Version: 1.66.0
+# Update libboost_thread.so on each version change
+Version: 1.81.0
 Release: 1
 License: Boost and MIT and Python
 
 URL: http://www.boost.org
 Source0: %{name}-%{version}.tar.bz2
-Source1: ver.py
-Source2: libboost_thread-mt.so
+Source1: libboost_thread.so
 
 # Patches from opensuse
-Patch0: boost-no_segfault_in_Regex_filter.patch
 Patch1: boost-no_type_punning.patch
 Patch2: boost-strict_aliasing.patch
 Patch3: boost-thread.patch
 Patch4: boost-use_std_xml_catalog.patch
 Patch5: boost-aarch64-flags.patch
-Patch6: boost-disable-pch-on-aarch64.patch
-Patch7: boost-visibility.patch
+Patch6: boost-process.patch
 Patch8: dynamic_linking.patch
 
-# boost-rpmoptflags-only.patch, boost-pool_check_overflow.patch - included in Fedora patches
+# boost-remove-cmakedir.patch, boost-rpmoptflags-only.patch - included in Fedora patches
 
 # Patches from fedora
-# https://svn.boost.org/trac/boost/ticket/6150
-Patch11: boost-1.50.0-fix-non-utf8-files.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=828856
-# https://bugzilla.redhat.com/show_bug.cgi?id=828857
-# https://svn.boost.org/trac/boost/ticket/6701
-Patch12: boost-1.58.0-pool.patch
-
-# https://svn.boost.org/trac/boost/ticket/5637
-Patch13: boost-1.57.0-mpl-print.patch
 
 # https://svn.boost.org/trac/boost/ticket/9038
 Patch14: boost-1.58.0-pool-test_linking.patch
 
-# https://bugzilla.redhat.com/show_bug.cgi?id=1190039
-Patch17: boost-1.66.0-build-optflags.patch
-
-# Prevent gcc.jam from setting -m32 or -m64.
-Patch18: boost-1.66.0-address-model.patch
+# https://bugzilla.redhat.com/show_bug.cgi?id=1541035
+Patch105: boost-1.78.0-build-optflags.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1318383
-Patch19: boost-1.66.0-no-rpath.patch
+Patch106: boost-1.78.0-no-rpath.patch
+
+# https://lists.boost.org/Archives/boost/2020/04/248812.php
+Patch88: boost-1.73.0-cmakedir.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=1899888
+# https://github.com/boostorg/locale/issues/52
+Patch94: boost-1.73-locale-empty-vector.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1541035
-Patch20: boost-1.66.0-bjam-build-flags.patch
+Patch107: boost-1.78.0-b2-build-flags.patch
 
-#These two are gcc8 fixes, so disabled for now
-# https://bugzilla.redhat.com/show_bug.cgi?id=1545092
-#Patch21: boost-1.66.0-spirit-abs-overflow.patch
-# https://bugzilla.redhat.com/show_bug.cgi?id=1585515
-#Patch22: boost-1.66.0-compute.patch
+# https://github.com/boostorg/random/issues/82
+Patch102: boost-1.76.0-random-test.patch
 
 BuildRequires: m4
 BuildRequires: libstdc++-devel
@@ -125,6 +110,18 @@ including STL containers. The aim of the library is to offers advanced
 features not present in standard containers or to offer the latest
 standard draft features for compilers that comply with C++03.
 
+%package contract
+Summary: Run-time component of boost contract library
+
+%description contract
+
+Run-time support for boost contract library.
+Contract programming for C++. All contract programming features are supported:
+Subcontracting, class invariants, postconditions (with old and return values),
+preconditions, customizable actions on assertion failure (e.g., terminate
+or throw), optional compilation and checking of assertions, etc,
+from Lorenzo Caminiti.
+
 %package date-time
 Summary: Run-Time component of boost date-time library
 
@@ -168,6 +165,15 @@ Summary: Run-Time component of boost iostreams library
 Run-Time support for Boost.IOStreams, a framework for defining streams,
 stream buffers and i/o filters.
 
+%package json
+Summary: Run-time component of boost json library
+
+%description json
+
+Run-time support for Boost.Json, a portable C++ library which provides
+containers and algorithms that implement JavaScript Object Notation, or
+simply "JSON"
+
 %package locale
 Summary: Run-Time component of boost locale library
 Requires: boost-chrono = %{version}-%{release}
@@ -200,6 +206,13 @@ Requires: libquadmath
 Run-Time support for C99 and C++ TR1 C-style Functions from math
 portion of Boost.TR1.
 
+%package nowide
+Summary: Standard library functions with UTF-8 API on Windows
+
+%description nowide
+
+Run-time support for Boost.Nowide.
+
 %package program-options
 Summary:  Run-Time component of boost program_options library
 
@@ -229,13 +242,6 @@ Summary: Run-Time component of boost serialization library
 %description serialization
 
 Run-Time support for serialization for persistence and marshaling.
-
-%package signals
-Summary: Run-Time component of boost signals and slots library
-
-%description signals
-
-Run-Time support for managed signals & slots callback implementation.
 
 %package stacktrace
 Summary: Run-time component of boost stacktrace library
@@ -292,6 +298,13 @@ Requires: boost-system = %{version}-%{release}
 The Boost.TypeErasure library provides runtime polymorphism in C++
 that is more flexible than that provided by the core language.
 
+%package url
+Summary: Run-Time component of boost URL library
+
+%description url
+
+Run-Time component of the boost URL library.
+
 %package wave
 Summary: Run-Time component of boost C99/C++ pre-processing library
 
@@ -307,14 +320,17 @@ Requires: pkgconfig(icu-uc)
 Requires: boost-atomic = %{version}-%{release}
 Requires: boost-chrono = %{version}-%{release}
 Requires: boost-container = %{version}-%{release}
+Requires: boost-contract = %{version}-%{release}
 Requires: boost-date-time = %{version}-%{release}
 Requires: boost-exception = %{version}-%{release}
 Requires: boost-filesystem = %{version}-%{release}
 Requires: boost-graph = %{version}-%{release}
 Requires: boost-iostreams = %{version}-%{release}
+Requires: boost-json = %{version}-%{release}
 Requires: boost-locale = %{version}-%{release}
 Requires: boost-log = %{version}-%{release}
 Requires: boost-math = %{version}-%{release}
+Requires: boost-nowide = %{version}-%{release}
 %if %{with quadmath}
 Requires: libquadmath-devel
 %endif
@@ -322,13 +338,13 @@ Requires: boost-program-options = %{version}-%{release}
 Requires: boost-random = %{version}-%{release}
 Requires: boost-regex = %{version}-%{release}
 Requires: boost-serialization = %{version}-%{release}
-Requires: boost-signals = %{version}-%{release}
 Requires: boost-stacktrace = %{version}-%{release}
 Requires: boost-system = %{version}-%{release}
 Requires: boost-test = %{version}-%{release}
 Requires: boost-thread = %{version}-%{release}
 Requires: boost-timer = %{version}-%{release}
 Requires: boost-type_erasure = %{version}-%{release}
+Requires: boost-url = %{version}-%{release}
 Requires: boost-wave = %{version}-%{release}
 
 %description devel
@@ -342,13 +358,13 @@ Provides: boost-devel-static = %{version}-%{release}
 %description static
 Static Boost C++ libraries.
 
-%package jam
+%package b2
 Summary: A low-level build tool
 
-%description jam
-Boost.Jam (BJam) is the low-level build engine tool for Boost.Build.
-Historically, Boost.Jam is based on on FTJam and on Perforce Jam but has grown
-a number of significant features and is now developed independently
+%description b2
+B2 (formerly Boost.Jam) is the low-level build engine tool for Boost.Build.
+Historically, B2 was based on on FTJam and on Perforce Jam but has grown
+a number of significant features and is now developed independently.
 
 %prep
 %autosetup -p1 -n %{name}-%{version}/upstream
@@ -364,10 +380,10 @@ a number of significant features and is now developed independently
 # built with pch=off to avoid this.
 
 echo ============================= build serial ==================
-./b2 -d+2 -q %{?_smp_mflags} --layout=tagged --without-python \
+./b2 -d+2 -q %{?_smp_mflags} --without-python \
 	--without-mpi --without-graph_parallel --build-dir=serial \
 	--without-context --without-coroutine --without-fiber \
-	variant=release threading=single,multi debug-symbols=on pch=off \
+	variant=release threading=multi debug-symbols=on pch=off \
 	stage
 
 # See libs/thread/build/Jamfile.v2 for where this file comes from.
@@ -379,7 +395,7 @@ else
 fi
 
 m4 -${DEF}HAS_ATOMIC_FLAG_LOCKFREE -DVERSION=%{version} \
-	%{SOURCE2} > $(basename %{SOURCE2})
+	%{SOURCE1} > $(basename %{SOURCE1})
 
 echo ============================= build Boost.Build ==================
 (cd tools/build
@@ -390,19 +406,19 @@ echo ============================= build Boost.Build ==================
 rm -rf $RPM_BUILD_ROOT
 
 echo ============================= install serial ==================
-./b2 -d+2 -q %{?_smp_mflags} --layout=tagged --without-python \
+./b2 -d+2 -q %{?_smp_mflags} --without-python \
 	--without-mpi --without-graph_parallel --build-dir=serial \
 	--without-context --without-coroutine --without-fiber \
 	--prefix=$RPM_BUILD_ROOT%{_prefix} \
 	--libdir=$RPM_BUILD_ROOT%{_libdir} \
-	variant=release threading=single,multi debug-symbols=on pch=off \
+	variant=release threading=multi debug-symbols=on pch=off \
 	install
 
 # Override DSO symlink with a linker script.  See the linker script
 # itself for details of why we need to do this.
-[ -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so ] # Must be present
-rm -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread-mt.so
-install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
+[ -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread.so ] # Must be present
+rm -f $RPM_BUILD_ROOT%{_libdir}/libboost_thread.so
+install -p -m 644 $(basename %{SOURCE1}) $RPM_BUILD_ROOT%{_libdir}/
 
 %fdupes %{buildroot}/
 %fdupes %{buildroot}/%{_libdir}/
@@ -426,6 +442,10 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 
 %postun container -p /sbin/ldconfig
 
+%post contract -p /sbin/ldconfig
+
+%postun contract -p /sbin/ldconfig
+
 %post date-time -p /sbin/ldconfig
 
 %postun date-time -p /sbin/ldconfig
@@ -446,6 +466,10 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 
 %postun iostreams -p /sbin/ldconfig
 
+%post json -p /sbin/ldconfig
+
+%postun json -p /sbin/ldconfig
+
 %post locale -p /sbin/ldconfig
 
 %postun locale -p /sbin/ldconfig
@@ -457,6 +481,10 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %post math -p /sbin/ldconfig
 
 %postun math -p /sbin/ldconfig
+
+%post nowide -p /sbin/ldconfig
+
+%postun nowide -p /sbin/ldconfig
 
 %post program-options -p /sbin/ldconfig
 
@@ -473,10 +501,6 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %post serialization -p /sbin/ldconfig
 
 %postun serialization -p /sbin/ldconfig
-
-%post signals -p /sbin/ldconfig
-
-%postun signals -p /sbin/ldconfig
 
 %post stacktrace -p /sbin/ldconfig
 
@@ -502,6 +526,10 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 
 %postun type_erasure -p /sbin/ldconfig
 
+%post url -p /sbin/ldconfig
+
+%postun url -p /sbin/ldconfig
+
 %post wave -p /sbin/ldconfig
 
 %postun wave -p /sbin/ldconfig
@@ -521,6 +549,11 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_container*.so.*
 
+%files contract
+%defattr(-, root, root, -)
+%license LICENSE_1_0.txt
+%{_libdir}/libboost_contract*.so.*
+
 %files date-time
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
@@ -539,13 +572,17 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %files graph
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
-%{_libdir}/libboost_graph.so.*
-%{_libdir}/libboost_graph-mt.so.*
+%{_libdir}/libboost_graph*.so.*
 
 %files iostreams
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_iostreams*.so.*
+
+%files json
+%defattr(-, root, root, -)
+%license LICENSE_1_0.txt
+%{_libdir}/libboost_json*.so.*
 
 %files locale
 %defattr(-, root, root, -)
@@ -561,6 +598,11 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_math*.so.*
+
+%files nowide
+%defattr(-, root, root, -)
+%license LICENSE_1_0.txt
+%{_libdir}/libboost_nowide*.so.*
 
 %files test
 %defattr(-, root, root, -)
@@ -590,11 +632,6 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %{_libdir}/libboost_serialization*.so.*
 %{_libdir}/libboost_wserialization*.so.*
 
-%files signals
-%defattr(-, root, root, -)
-%license LICENSE_1_0.txt
-%{_libdir}/libboost_signals*.so.*
-
 %files stacktrace
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
@@ -622,6 +659,11 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_type_erasure*.so.*
 
+%files url
+%defattr(-, root, root, -)
+%license LICENSE_1_0.txt
+%{_libdir}/libboost_url*.so.*
+
 %files wave
 %defattr(-, root, root, -)
 %license LICENSE_1_0.txt
@@ -633,6 +675,7 @@ install -p -m 644 $(basename %{SOURCE2}) $RPM_BUILD_ROOT%{_libdir}/
 %{_libdir}/libboost_*.so
 %defattr(0644, root, root, 0755) 
 %{_includedir}/%{name}
+%{_libdir}/cmake
 
 %files static
 %defattr(-, root, root, -)
