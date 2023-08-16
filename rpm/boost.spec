@@ -394,7 +394,7 @@ else
 	DEF=U
 fi
 
-m4 -${DEF}HAS_ATOMIC_FLAG_LOCKFREE -DVERSION=%{version} \
+m4 -${DEF}HAS_ATOMIC_FLAG_LOCKFREE -DVERSION=$(echo %{version} | cut -d '+' -f 1) \
 	%{SOURCE1} > $(basename %{SOURCE1})
 
 echo ============================= build Boost.Build ==================
