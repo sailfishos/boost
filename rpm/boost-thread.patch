@@ -1,7 +1,7 @@
 Index: boost_1_58_0/boost/config/compiler/gcc.hpp
 ===================================================================
---- a/libs/config/include/boost/config/compiler/gcc.hpp.orig	2010-07-01 13:59:21.000000000 +0200
-+++ b/libs/config/include/boost/config/compiler/gcc.hpp	2010-08-24 14:01:18.000000000 +0200
+--- boost_1_58_0.orig/libs/config/include/boost/config/compiler/gcc.hpp
++++ boost_1_58_0/libs/config/include/boost/config/compiler/gcc.hpp
 @@ -73,7 +73,7 @@
  // those platforms where we can know for sure). It will get turned off again
  // later if no threading API is detected.

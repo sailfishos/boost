@@ -1,0 +1,107 @@
+On Linux the boost exception library is a stub and no package is
+generated for it. See comments in spec file.
+
+--- a/libs/coroutine/build.jam
++++ b/libs/coroutine/build.jam
+@@ -10,7 +10,6 @@
+     /boost/config//boost_config
+     /boost/context//boost_context
+     /boost/core//boost_core
+-    /boost/exception//boost_exception
+     /boost/move//boost_move
+     /boost/system//boost_system
+     /boost/throw_exception//boost_throw_exception
+diff --git a/build.jam b/build.jam
+index d0caf573..bd3c231b 100644
+--- a/libs/thread/build.jam
++++ b/libs/thread/build.jam
+@@ -16,7 +16,6 @@ constant boost_dependencies :
+     /boost/container_hash//boost_container_hash
+     /boost/core//boost_core
+     /boost/date_time//boost_date_time
+-    /boost/exception//boost_exception
+     /boost/function//boost_function
+     /boost/io//boost_io
+     /boost/move//boost_move
+diff --git a/build/Jamfile.v2 b/build/Jamfile.v2
+index dbaa83a..5b11d12 100644
+--- a/libs/log/build/Jamfile.v2
++++ b/libs/log/build/Jamfile.v2
+@@ -69,7 +69,6 @@ constant boost_log_public_deps :
+ constant boost_log_private_deps :
+     <library>/boost/align//boost_align
+     <library>/boost/bind//boost_bind
+-    <library>/boost/exception//boost_exception
+     <library>/boost/interprocess//boost_interprocess
+     <library>/boost/optional//boost_optional
+     <library>/boost/spirit//boost_spirit
+@@ -101,7 +100,6 @@ constant boost_log_setup_public_deps :
+ constant boost_log_setup_private_deps :
+     <library>/boost/bind//boost_bind
+     <library>/boost/date_time//boost_date_time
+-    <library>/boost/exception//boost_exception
+     <library>/boost/filesystem//boost_filesystem
+     <library>/boost/io//boost_io
+     <library>/boost/log//boost_log
+@@ -116,7 +114,6 @@ constant boost_log_setup_private_deps :
+ 
+ constant boost_log_support_public_deps :
+     <library>/boost/log//boost_log
+-    <library>/boost/exception//boost_exception
+     <library>/boost/spirit//boost_spirit
+     <library>/boost/xpressive//boost_xpressive
+     ;
+diff --git a/build.jam b/build.jam
+index dd6db1f8..2062c760 100644
+--- a/libs/test/build.jam
++++ b/libs/test/build.jam
+@@ -12,7 +12,6 @@ constant boost_dependencies :
+     /boost/config//boost_config
+     /boost/core//boost_core
+     /boost/detail//boost_detail
+-    /boost/exception//boost_exception
+     /boost/function//boost_function
+     /boost/io//boost_io
+     /boost/iterator//boost_iterator
+diff --git a/build.jam b/build.jam
+index a33b5f0..c4d7b96 100644
+--- a/libs/process/build.jam
++++ b/libs/process/build.jam
+@@ -22,7 +22,6 @@ constant boost_dependencies :
+     /boost/move//boost_move
+     /boost/optional//boost_optional
+     /boost/system//boost_system
+-    /boost/throw_exception//boost_throw_exception
+     /boost/tokenizer//boost_tokenizer
+     /boost/type_index//boost_type_index
+     /boost/type_traits//boost_type_traits
+diff --git a/build.jam b/build.jam
+index 9a3ae769..117808ac 100644
+--- a/libs/regex/build.jam
++++ b/libs/regex/build.jam
+@@ -11,7 +11,6 @@ constant boost_dependencies :
+     /boost/config//boost_config
+     /boost/predef//boost_predef
+     /boost/static_assert//boost_static_assert
+-    /boost/throw_exception//boost_throw_exception
+     /boost/type_traits//boost_type_traits ;
+ 
+ project /boost/regex
+diff --git a/build.jam b/build.jam
+index 33b7323..22c6218 100644
+--- a/libs/algorithm/build.jam
++++ b/libs/algorithm/build.jam
+@@ -12,13 +12,11 @@ constant boost_dependencies :
+     /boost/concept_check//boost_concept_check
+     /boost/config//boost_config
+     /boost/core//boost_core
+-    /boost/exception//boost_exception
+     /boost/function//boost_function
+     /boost/iterator//boost_iterator
+     /boost/mpl//boost_mpl
+     /boost/range//boost_range
+     /boost/regex//boost_regex
+-    /boost/throw_exception//boost_throw_exception
+     /boost/tuple//boost_tuple
+     /boost/type_traits//boost_type_traits
+     /boost/unordered//boost_unordered ;

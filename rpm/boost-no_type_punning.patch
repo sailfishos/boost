@@ -1,6 +1,6 @@
 Index: libs/python/src/dict.cpp
 ===================================================================
---- a/libs/python/src/dict.cpp.orig
+--- a/libs/python/src/dict.cpp
 +++ b/libs/python/src/dict.cpp
 @@ -28,9 +28,9 @@ namespace
  
@@ -16,7 +16,7 @@ Index: libs/python/src/dict.cpp
  dict_base::dict_base()
 Index: libs/python/src/list.cpp
 ===================================================================
---- a/libs/python/src/list.cpp.orig
+--- a/libs/python/src/list.cpp
 +++ b/libs/python/src/list.cpp
 @@ -10,11 +10,11 @@ namespace boost { namespace python { nam
  
@@ -34,7 +34,7 @@ Index: libs/python/src/list.cpp
  list_base::list_base()
 Index: libs/python/src/long.cpp
 ===================================================================
---- a/libs/python/src/long.cpp.orig
+--- a/libs/python/src/long.cpp
 +++ b/libs/python/src/long.cpp
 @@ -8,16 +8,16 @@ namespace boost { namespace python { nam
  
@@ -73,7 +73,7 @@ Index: libs/python/src/long.cpp
      : object(long_base::call(arg))
 Index: libs/python/src/object/class.cpp
 ===================================================================
---- a/libs/python/src/object/class.cpp.orig
+--- a/libs/python/src/object/class.cpp
 +++ b/libs/python/src/object/class.cpp
 @@ -612,9 +612,11 @@ namespace objects
    void class_base::add_property(
@@ -103,7 +103,7 @@ Index: libs/python/src/object/class.cpp
    }
 Index: libs/python/src/str.cpp
 ===================================================================
---- a/libs/python/src/str.cpp.orig
+--- a/libs/python/src/str.cpp
 +++ b/libs/python/src/str.cpp
 @@ -9,14 +9,14 @@ namespace boost { namespace python { nam
  
@@ -127,7 +127,7 @@ Index: libs/python/src/str.cpp
  str_base::str_base()
 Index: libs/python/src/tuple.cpp
 ===================================================================
---- a/libs/python/src/tuple.cpp.orig
+--- a/libs/python/src/tuple.cpp
 +++ b/libs/python/src/tuple.cpp
 @@ -8,9 +8,10 @@ namespace boost { namespace python { nam
  
