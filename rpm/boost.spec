@@ -14,7 +14,7 @@ Version: 1.81.0
 Release: 1
 License: Boost and MIT and Python
 
-URL: http://www.boost.org
+URL: https://github.com/sailfishos/boost
 Source0: %{name}-%{version}.tar.bz2
 Source1: libboost_thread.so
 
@@ -24,34 +24,54 @@ Patch2: boost-strict_aliasing.patch
 Patch3: boost-thread.patch
 Patch4: boost-use_std_xml_catalog.patch
 Patch5: boost-aarch64-flags.patch
-Patch6: boost-process.patch
-Patch8: dynamic_linking.patch
+Patch6: dynamic_linking.patch
 
 # boost-remove-cmakedir.patch, boost-rpmoptflags-only.patch - included in Fedora patches
 
 # Patches from fedora
 
-# https://svn.boost.org/trac/boost/ticket/9038
-Patch14: boost-1.58.0-pool-test_linking.patch
-
 # https://bugzilla.redhat.com/show_bug.cgi?id=1541035
-Patch105: boost-1.78.0-build-optflags.patch
+Patch101: boost-1.81.0-build-optflags.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1318383
-Patch106: boost-1.78.0-no-rpath.patch
+Patch102: boost-1.78.0-no-rpath.patch
 
 # https://lists.boost.org/Archives/boost/2020/04/248812.php
-Patch88: boost-1.73.0-cmakedir.patch
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1899888
-# https://github.com/boostorg/locale/issues/52
-Patch94: boost-1.73-locale-empty-vector.patch
+Patch103: boost-1.73.0-cmakedir.patch
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1541035
-Patch107: boost-1.78.0-b2-build-flags.patch
+Patch104: boost-1.78.0-b2-build-flags.patch
 
 # https://github.com/boostorg/random/issues/82
-Patch102: boost-1.76.0-random-test.patch
+Patch105: boost-1.76.0-random-test.patch
+
+# https://bugzilla.redhat.com/show_bug.cgi?id=2178210
+# https://github.com/boostorg/phoenix/issues/111
+# https://github.com/boostorg/phoenix/issues/115
+Patch106: boost-1.81-phoenix-multiple-defn.patch
+
+# https://github.com/boostorg/random/commit/7561690135c67ecf88c2133bad7680ebd2665c36
+# https://github.com/boostorg/random/commit/4239d93dad32a11e4c3829050f8070d456266133
+Patch107: boost-1.81.0-random-test-fixes.patch
+
+Patch108: boost-1.83-regex-test-fixes.patch
+
+# https://github.com/boostorg/multiprecision/commit/ea786494db78efdf178cbe36810f3326156e3347
+Patch109: boost-1.83-multiprecision-convert-noexcept.patch
+
+# https://github.com/boostorg/math/commit/f3e0cde514e444c2e25a3522d05a6e244fb2f23a
+# https://github.com/boostorg/math/issues/1132
+Patch110: boost-1.83-math-Correct-float_next-INF-and-float_prior-INF.patch
+
+# https://github.com/boostorg/context/pull/234
+Patch111: boost-1.83-Fix-ABI-detection-for-empty-os-platform.patch
+
+# https://github.com/boostorg/python/pull/432
+# https://github.com/boostorg/python/pull/443
+Patch112: boost-1.83-NumPy-2.x-dtype.patch
+
+# https://github.com/boostorg/thread/pull/408
+Patch113: boost-1.83-fix-no-member-named_that_error.patch
 
 BuildRequires: m4
 BuildRequires: libstdc++-devel
@@ -535,142 +555,115 @@ install -p -m 644 $(basename %{SOURCE1}) $RPM_BUILD_ROOT%{_libdir}/
 %postun wave -p /sbin/ldconfig
 
 %files atomic
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_atomic*.so.*
 
 %files chrono
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_chrono*.so.*
 
 %files container
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_container*.so.*
 
 %files contract
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_contract*.so.*
 
 %files date-time
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_date_time*.so.*
 
 %files exception
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_exception*.so.*
 
 %files filesystem
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_filesystem*.so.*
 
 %files graph
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_graph*.so.*
 
 %files iostreams
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_iostreams*.so.*
 
 %files json
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_json*.so.*
 
 %files locale
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_locale*.so.*
 
 %files log
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_log*.so.*
 
 %files math
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_math*.so.*
 
 %files nowide
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_nowide*.so.*
 
 %files test
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_prg_exec_monitor*.so.*
 %{_libdir}/libboost_test_exec_monitor*.so.*
 %{_libdir}/libboost_unit_test_framework*.so.*
 
 %files program-options
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_program_options*.so.*
 
 %files random
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_random*.so.*
 
 %files regex
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_regex*.so.*
 
 %files serialization
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_serialization*.so.*
 %{_libdir}/libboost_wserialization*.so.*
 
 %files stacktrace
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_stacktrace_addr2line*.so.*
 %{_libdir}/libboost_stacktrace_basic*.so.*
 %{_libdir}/libboost_stacktrace_noop*.so.*
 
 %files system
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_system*.so.*
 
 %files thread
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_thread*.so.*
 
 %files timer
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_timer*.so.*
 
 %files type_erasure
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_type_erasure*.so.*
 
 %files url
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_url*.so.*
 
 %files wave
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_wave*.so.*
 
 %files devel
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/libboost_*.so
 %defattr(0644, root, root, 0755) 
@@ -678,6 +671,5 @@ install -p -m 644 $(basename %{SOURCE1}) $RPM_BUILD_ROOT%{_libdir}/
 %{_libdir}/cmake
 
 %files static
-%defattr(-, root, root, -)
 %license LICENSE_1_0.txt
 %{_libdir}/*.a
